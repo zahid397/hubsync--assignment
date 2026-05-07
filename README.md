@@ -10,11 +10,11 @@
 
 ## 🌐 Live Site
 
-> **[https://phenomenal-ostrich-e6e0d6.instawp.site/8-2/](https://phenomenal-ostrich-e6e0d6.instawp.site/8-2/)**
+> **[https://phenomenal-ostrich-e6e0d6.instawp.site/](https://phenomenal-ostrich-e6e0d6.instawp.site/)**
 
 > ⚠️ **Note:** InstaWP free hosting shows a splash screen on first visit.
-> Click **"Continue to Site"** once to access the full implementation.
-> Screenshots are included below for quick reference.
+> Click **"Continue to Site"** once to access the full HubSync implementation.
+> Screenshots are included in the `/screenshots` folder for quick reference.
 
 ---
 
@@ -23,7 +23,7 @@
 | Resource | Link |
 |----------|------|
 | 📐 Figma Design | [HubSync Figma File](https://www.figma.com/design/fGuo6UhYJQwoRnbQtjucTa/Hubsync?node-id=2651-27870) |
-| 🌐 Live Site | [phenomenal-ostrich-e6e0d6.instawp.site](https://phenomenal-ostrich-e6e0d6.instawp.site/8-2/) |
+| 🌐 Live Site | [phenomenal-ostrich-e6e0d6.instawp.site](https://phenomenal-ostrich-e6e0d6.instawp.site/) |
 
 ---
 
