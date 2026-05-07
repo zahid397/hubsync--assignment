@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HubSync – Tax &amp; Accounting Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & VARIABLES ── */
+:root {
+  --primary: #1A5FFF;
+  --primary-dark: #0040CC;
+  --primary-light: #EEF3FF;
+  --dark: #0D1B3E;
+  --dark2: #162248;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --red: #EF4444;
+  --red-light: #FEF2F2;
+  --green: #10B981;
+  --amber: #F59E0B;
+  --white: #FFFFFF;
+  --bg: #EBF0FB;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.10);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.12);
+  --shadow-xl: 0 24px 60px rgba(0,0,0,0.18);
+  --shadow-blue: 0 8px 24px rgba(26,95,255,0.28);
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-full: 999px;
+  --transition: 0.2s ease;
+  --transition-slow: 0.35s ease;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior:smooth; scroll-padding-top:80px; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--dark);
+  background: var(--white);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img { max-width:100%; display:block; }
+button { font-family: inherit; cursor: pointer; }
+a { text-decoration: none; color: inherit; }
+
+/* ── TOAST ── */
+#hs-toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  background: var(--dark);
+  color: #fff;
+  padding: 13px 20px;
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 999999;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  max-width: 320px;
+  box-shadow: var(--shadow-xl);
+  border-left: 4px solid var(--primary);
+}
+#hs-toast.ok  { border-color: var(--green); }
+#hs-toast.bad { border-color: var(--red); }
+#hs-toast.warn{ border-color: var(--amber); }
+#hs-toast.show { opacity:1; transform:translateY(0); }
+
+/* ── MODAL OVERLAY ── */
+.hs-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13,27,62,0.7);
+  z-index: 99998;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(6px);
+}
+.hs-overlay.open { display: flex !important; }
+
+.hs-modal {
+  background: var(--white);
+  border-radius: var(--radius-2xl);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+  box-shadow: var(--shadow-xl);
+  animation: modalIn 0.25s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@keyframes modalIn {
+  from { opacity:0; transform:translateY(20px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.hs-modal-close {
+  position: absolute;
+  top: 14px; right: 16px;
+  background: var(--gray-100);
+  border: none;
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items:center; justify-content:center;
+  color: var(--gray-600);
+  transition: all var(--transition);
+}
+.hs-modal-close:hover { background:var(--gray-200); color:var(--dark); }
+
+/* Form elements */
+.hs-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin: 12px 0 5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.hs-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--dark);
+  background: var(--white);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.hs-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26,95,255,0.1);
+}
+.hs-input.error { border-color: var(--red); }
+.hs-input-row { display:flex; gap:12px; }
+.hs-input-row > div { flex:1; }
+.hs-err {
+  font-size: 12px;
+  color: var(--red);
+  margin-top: 4px;
+  display: none;
+}
+.hs-err.show { display:block; }
+
+/* Buttons */
+.hs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px 26px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: none;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+.hs-btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: var(--shadow-blue);
+}
+.hs-btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(26,95,255,0.42);
+}
+.hs-btn-primary:active { transform:translateY(0); }
+.hs-btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+.hs-btn-outline:hover {
+  background: var(--primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.hs-btn-white {
+  background: #fff;
+  color: var(--primary);
+  border: 2px solid #fff;
+}
+.hs-btn-white:hover { background: var(--primary-light); }
+.hs-btn-full { width:100%; padding:13px; margin-top:6px; }
+.hs-btn-sm { padding: 9px 18px; font-size: 13px; }
+
+/* Tabs */
+.hs-tabs {
+  display: flex;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+.hs-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: var(--gray-50);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--gray-500);
+  transition: all var(--transition);
+}
+.hs-tab.active { background: var(--primary); color: #fff; }
+
+/* Success panel */
+.hs-success {
+  display: none;
+  text-align: center;
+  padding: 10px 0;
+}
+.hs-success-icon {
+  width: 66px; height: 66px;
+  border-radius: 50%;
+  background: var(--green);
+  margin: 0 auto 16px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 28px;
+  color: #fff;
+  animation: popBounce 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popBounce {
+  from { transform:scale(0); }
+  to   { transform:scale(1); }
+}
+
+/* ── NAV ── */
+.hs-nav-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  padding: 10px 20px 0;
+}
+.hs-nav-wrap.scrolled {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  padding-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+.hs-nav {
+  max-width: 1240px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: 0 22px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--gray-200);
+  position: relative;
+}
+.hs-nav-wrap.scrolled .hs-nav { box-shadow:none; border:none; }
+
+.hs-logo {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: -0.3px;
+  flex-shrink: 0;
+}
+.hs-logo-bolt {
+  width: 28px; height: 28px;
+  background: var(--primary);
+  border-radius: 8px;
+  display: flex; align-items:center; justify-content:center;
+  color: #fff;
+  font-size: 15px;
+}
+
+.hs-nav-links {
+  display: flex;
+  gap: 2px;
+  list-style: none;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+.hs-nav-links a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+  padding: 7px 13px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition);
+}
+.hs-nav-links a:hover { color:var(--primary); background:#F5F8FF; }
+.hs-nav-links a.active {
+  color: var(--primary);
+  background: var(--primary-light);
+  font-weight: 600;
+}
+
+.hs-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.hs-signin-nav {
+  background: none;
+  border: 1.5px solid var(--gray-300);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--dark);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.hs-signin-nav:hover { border-color:var(--primary); color:var(--primary); }
+.hs-demo-nav {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 4px 14px rgba(26,95,255,0.32);
+}
+.hs-demo-nav:hover { background:var(--primary-dark); transform:translateY(-1px); }
+
+/* Avatar */
+.hs-avatar-wrap {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+  transition: background var(--transition);
+}
+.hs-avatar-wrap.visible { display:flex; }
+.hs-avatar-wrap:hover { background:var(--gray-100); }
+.hs-avatar-circle {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex; align-items:center; justify-content:center;
+}
+.hs-avatar-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hs-avatar-dd {
+  display: none;
+  position: absolute;
+  top: 46px; right: 0;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  min-width: 180px;
+  box-shadow: var(--shadow-xl);
+  z-index: 99999;
+  animation: ddIn 0.18s ease;
+}
+@keyframes ddIn {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.hs-avatar-dd.open { display:block; }
+.hs-dd-item {
+  display: block;
+  width: 100%;
+  padding: 9px 13px;
+  font-size: 13px;
+  color: var(--gray-700);
+  font-weight: 500;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition);
+}
+.hs-dd-item:hover { background:#F5F8FF; color:var(--primary); }
+.hs-dd-logout { color:var(--red); border-top:1px solid var(--gray-200); margin-top:4px; padding-top:9px; }
+.hs-dd-logout:hover { background:var(--red-light); color:var(--red); }
+
+/* Mobile menu */
+.hs-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: var(--dark);
+  cursor: pointer;
+  padding: 6px;
+}
+.hs-mobile-nav {
+  display: none;
+  position: fixed;
+  top: 80px; left: 0; right: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 16px 20px;
+  z-index: 9998;
+  box-shadow: var(--shadow-md);
+}
+.hs-mobile-nav.open { display:block; }
+.hs-mobile-nav a {
+  display: block;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--dark);
+  border-bottom: 1px solid var(--gray-100);
+}
+.hs-mobile-nav a:hover { color:var(--primary); }
+
+/* ── HERO ── */
+.hs-hero {
+  background: linear-gradient(135deg, #EBF0FB 0%, #F0F5FF 40%, #E8EFFD 70%, #F5F7FF 100%);
+  padding: 90px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.hs-hero::before {
+  content: '';
+  position: absolute;
+  top: -180px; right: -180px;
+  width: 580px; height: 580px;
+  background: radial-gradient(circle, rgba(26,95,255,0.07) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hs-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -120px; left: -120px;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(26,95,255,0.04) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hs-hero-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  gap: 56px;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+.hs-hero-left { flex: 1 1 340px; min-width:280px; }
+.hs-hero-right { flex: 1 1 300px; min-width:260px; display:flex; justify-content:center; }
+
+.hs-pill {
+  display: inline-block;
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-full);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 16px;
+  margin-bottom: 18px;
+  background: rgba(26,95,255,0.05);
+  letter-spacing: 0.3px;
+}
+.hs-h1 {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--dark);
+  line-height: 1.08;
+  margin: 0 0 22px;
+  letter-spacing: -0.03em;
+}
+.hs-h1 span { color: var(--primary); }
+.hs-hero-sub {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--gray-600);
+  margin-bottom: 20px;
+  letter-spacing: -0.2px;
+}
+
+.hs-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 11px;
+  font-size: 15px;
+  color: var(--gray-600);
+  line-height: 1.55;
+}
+.hs-bullet-check {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex; align-items:center; justify-content:center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hs-hero-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.hs-social-proof {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.hs-avatars {
+  display: flex;
+}
+.hs-avatars-item {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 11px; font-weight: 700; color: #fff;
+  margin-right: -7px;
+  z-index: 1;
+}
+.hs-proof-text { font-size: 12px; color: var(--gray-500); }
+.hs-proof-text strong { color: var(--dark); }
+.hs-stars { color: var(--amber); font-size: 13px; }
+
+/* Dashboard mock */
+.hs-dash {
+  background: var(--dark);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  position: relative;
+  color: #fff;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 24px 70px rgba(13,27,62,0.3);
+}
+.hs-dash::before {
+  content: "● LIVE";
+  position: absolute;
+  top: 14px; right: 16px;
+  background: var(--red);
+  color: #fff;
+  font-size: 9px; font-weight:700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.4px;
+  animation: livePulse 2s infinite;
+}
+@keyframes livePulse {
+  0%,100% { opacity:1; }
+  50% { opacity:0.4; }
+}
+.hs-dash-label {
+  font-size: 10px;
+  color: #94A3B8;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin-bottom: 14px;
+}
+.hs-dash-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.hs-dash-stat {
+  flex: 1;
+  background: rgba(255,255,255,0.07);
+  border-radius: var(--radius);
+  padding: 13px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.hs-dash-stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.hs-dash-stat-lbl {
+  font-size: 10px;
+  color: #94A3B8;
+  margin-top: 3px;
+  font-weight: 500;
+}
+.hs-dash-activity {
+  background: rgba(255,255,255,0.05);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.hs-dash-act-hd {
+  font-size: 10px;
+  color: #64748B;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+.hs-dash-act-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.hs-dash-act-row:last-child { border-bottom:none; }
+.hs-dash-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.hs-dash-dot.g { background:var(--green); }
+.hs-dash-dot.a { background:var(--amber); }
+.hs-dash-dot.b { background:var(--primary); }
+.hs-dash-act-txt { font-size:12px; color:#E2E8F0; font-weight:500; flex:1; }
+.hs-dash-act-time { font-size:10px; color:#64748B; }
+.hs-dash-cta {
+  width: 100%;
+  padding: 11px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.hs-dash-cta:hover { background:var(--primary-dark); }
+
+/* ── LOGOS MARQUEE ── */
+.hs-logos {
+  overflow: hidden;
+  background: #fff;
+  padding: 26px 0;
+  border-top: 1px solid var(--gray-200);
+  border-bottom: 1px solid var(--gray-200);
+}
+.hs-logo-track {
+  display: flex;
+  gap: 64px;
+  width: max-content;
+  align-items: center;
+  animation: marquee 22s linear infinite;
+}
+.hs-logo-track:hover { animation-play-state:paused; }
+.hs-logo-track span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9CA3AF;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  transition: color var(--transition);
+}
+.hs-logo-track span:hover { color:var(--dark); }
+@keyframes marquee {
+  0%   { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+
+/* ── SECTIONS ── */
+.hs-section-light { background:#F8FAFE; padding:88px 24px; }
+.hs-section-white { background:#fff; padding:88px 24px; }
+.hs-section-dark  { background:var(--dark); padding:88px 24px; color:#fff; }
+.hs-section-blue  { background:var(--primary); padding:88px 24px; color:#fff; }
+.hs-inner { max-width:1240px; margin:0 auto; }
+
+.hs-section-hd {
+  text-align: center;
+  margin-bottom: 52px;
+}
+.hs-section-hd h2 {
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--dark);
+  margin-bottom: 10px;
+  letter-spacing: -0.025em;
+}
+.hs-section-hd p {
+  font-size: 16px;
+  color: var(--gray-500);
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+.hs-section-dark .hs-section-hd h2,
+.hs-section-blue .hs-section-hd h2 { color:#fff; }
+.hs-section-dark .hs-section-hd p  { color:#94A3B8; }
+.hs-section-blue .hs-section-hd p  { color:rgba(255,255,255,0.7); }
+
+/* ── GRIDS ── */
+.hs-grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.hs-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.hs-grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+
+/* ── SERVICE CARDS ── */
+.hs-service-card {
+  background: #fff;
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  border: 1px solid #F0F4FF;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-slow);
+  position: relative;
+  overflow: hidden;
+}
+.hs-service-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-slow);
+}
+.hs-service-card:hover { transform:translateY(-5px); box-shadow:var(--shadow-lg); border-color:#C7D7FF; }
+.hs-service-card:hover::after { transform:scaleX(1); }
+.hs-service-icon {
+  width: 48px; height: 48px;
+  background: var(--primary-light);
+  border-radius: 12px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+.hs-service-title { font-size:16px; font-weight:700; color:var(--dark); margin-bottom:8px; }
+.hs-service-desc { font-size:14px; color:var(--gray-500); line-height:1.65; margin-bottom:16px; }
+.hs-learn-more {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: gap var(--transition);
+}
+.hs-learn-more:hover { gap:9px; }
+
+/* ── WHY CHOOSE ── */
+.hs-feature-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  text-align: center;
+  border: 1px solid #F0F4FF;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-slow);
+}
+.hs-feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: #C7D7FF;
+}
+.hs-feature-icon { font-size:32px; margin-bottom:10px; }
+.hs-feature-title { font-size:13px; font-weight:700; color:var(--dark); line-height:1.4; }
+
+/* ── STATS ── */
+.hs-stat-card {
+  text-align: center;
+  padding: 32px 20px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  background: #fff;
+}
+.hs-stat-num {
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--dark);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.hs-stat-lbl { font-size:13px; color:var(--gray-500); margin-top:8px; font-weight:500; }
+
+/* ── PROCESS ── */
+.hs-process {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+  position: relative;
+  margin-top: 24px;
+}
+.hs-process-step { flex:1; text-align:center; position:relative; padding:0 16px; }
+.hs-process-step::before {
+  content: '';
+  position: absolute;
+  top: 20px; left: 50%; right: -50%;
+  height: 2px;
+  background: var(--gray-200);
+  z-index: 0;
+}
+.hs-process-step:last-child::before { display:none; }
+.hs-process-num {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex; align-items:center; justify-content:center;
+  margin: 0 auto 14px;
+  position: relative;
+  z-index: 1;
+}
+.hs-process-title { font-size:15px; font-weight:700; color:var(--dark); margin-bottom:8px; }
+.hs-process-desc { font-size:13px; color:var(--gray-500); line-height:1.6; }
+
+/* ── WORK TABS ── */
+.hs-work-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.hs-work-tab {
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--gray-200);
+  background: transparent;
+  color: var(--gray-600);
+  font-family: inherit;
+  transition: all var(--transition);
+}
+.hs-work-tab:hover { border-color:var(--primary); color:var(--primary); }
+.hs-work-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.hs-work-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.hs-work-item {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--dark);
+  aspect-ratio: 4/3;
+  position: relative;
+  cursor: pointer;
+}
+.hs-work-item-bg {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 100%);
+  display: flex; align-items:center; justify-content:center;
+  font-size: 48px;
+  transition: transform var(--transition-slow);
+}
+.hs-work-item:hover .hs-work-item-bg { transform:scale(1.06); }
+.hs-work-item-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(13,27,62,0.85), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+  display: flex; align-items:flex-end; padding:16px;
+}
+.hs-work-item:hover .hs-work-item-overlay { opacity:1; }
+.hs-work-item-title { font-size:14px; font-weight:700; color:#fff; }
+
+/* ── TESTIMONIAL ── */
+.hs-testimonial-wrap {
+  background: var(--dark);
+  border-radius: var(--radius-2xl);
+  padding: 48px 56px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hs-testimonial-quote {
+  font-size: 18px;
+  font-weight: 500;
+  color: #E2E8F0;
+  line-height: 1.75;
+  max-width: 740px;
+  margin: 0 auto 24px;
+  position: relative;
+}
+.hs-testimonial-quote::before {
+  content: '"';
+  position: absolute;
+  top: -24px; left: -16px;
+  font-size: 80px;
+  color: var(--primary);
+  opacity: 0.3;
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+.hs-testimonial-author { font-size:14px; font-weight:600; color:#94A3B8; }
+.hs-testimonial-author strong { color:#fff; }
+.hs-testimonial-dots { display:flex; justify-content:center; gap:8px; margin-top:24px; }
+.hs-testimonial-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.hs-testimonial-dot.active { background:#fff; width:22px; border-radius:4px; }
+
+/* ── TEAM ── */
+.hs-team-card {
+  text-align: center;
+  position: relative;
+}
+.hs-team-photo {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, #1A2A5E, var(--dark));
+  display: flex; align-items:center; justify-content:center;
+  font-size: 56px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  position: relative;
+  transition: all var(--transition-slow);
+}
+.hs-team-card:hover .hs-team-photo { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+.hs-team-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26,95,255,0.85);
+  display: flex; align-items:center; justify-content:center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+}
+.hs-team-card:hover .hs-team-photo-overlay { opacity:1; }
+.hs-team-social-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  color: #fff;
+  font-size: 14px;
+  display: flex; align-items:center; justify-content:center;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.hs-team-social-btn:hover { background:rgba(255,255,255,0.35); }
+.hs-team-name { font-size:15px; font-weight:700; color:var(--dark); }
+.hs-team-role { font-size:13px; color:var(--primary); font-weight:500; margin-top:3px; }
+
+/* ── AWARDS ── */
+.hs-awards-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px;
+  margin-bottom: 48px;
+}
+.hs-award-500 {
+  font-size: 96px;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.hs-award-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-xl);
+  padding: 26px;
+  text-align: center;
+  transition: all var(--transition-slow);
+}
+.hs-award-card:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-3px);
+}
+.hs-award-yr { font-size:13px; color:#94A3B8; margin-bottom:6px; }
+.hs-award-title { font-size:13px; font-weight:700; color:#fff; line-height:1.4; margin-bottom:4px; }
+.hs-award-org { font-size:12px; color:var(--primary); font-weight:600; }
+.hs-award-tags { display:flex; gap:5px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+.hs-award-tag {
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+}
+.hs-award-tag.outline { border:1px solid rgba(255,255,255,0.25); color:#94A3B8; }
+.hs-award-tag.blue { background:var(--primary); color:#fff; }
+
+/* ── NEWS ── */
+.hs-news-filter { display:flex; gap:8px; margin-bottom:28px; flex-wrap:wrap; }
+.hs-news-btn {
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1.5px solid var(--gray-200);
+  background: transparent;
+  color: var(--gray-600);
+  transition: all var(--transition);
+}
+.hs-news-btn:hover { border-color:var(--primary); color:var(--primary); }
+.hs-news-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.hs-news-card {
+  background: #fff;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+  transition: all var(--transition-slow);
+}
+.hs-news-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+.hs-news-thumb {
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, var(--dark), var(--dark2));
+  display: flex; align-items:center; justify-content:center;
+  font-size: 42px;
+  position: relative;
+  overflow: hidden;
+}
+.hs-news-thumb-badge {
+  position: absolute;
+  top: 10px; left: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+}
+.hs-news-body { padding: 20px; }
+.hs-news-date { font-size:11px; color:var(--gray-400); margin-bottom:8px; font-weight:500; }
+.hs-news-title { font-size:15px; font-weight:700; color:var(--dark); margin-bottom:8px; line-height:1.4; }
+.hs-news-excerpt { font-size:13px; color:var(--gray-500); line-height:1.65; margin-bottom:14px; }
+.hs-news-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex; align-items:center; gap:5px;
+  transition: gap var(--transition);
+}
+.hs-news-link:hover { gap:9px; }
+
+/* ── PARTNERS ── */
+.hs-partners-box {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-xl);
+  padding: 30px 48px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  background: #fff;
+}
+.hs-partner-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #9CA3AF;
+  white-space: nowrap;
+  transition: color var(--transition);
+  cursor: default;
+}
+.hs-partner-name:hover { color:var(--dark); }
+
+/* ── MARQUEE TEXT ── */
+.hs-marquee-strip {
+  overflow: hidden;
+  background: var(--primary);
+  padding: 14px 0;
+}
+.hs-marquee-inner {
+  display: flex;
+  gap: 60px;
+  width: max-content;
+  animation: marquee 18s linear infinite;
+}
+.hs-marquee-inner span {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── CTA SECTION ── */
+.hs-cta-box {
+  text-align: center;
+  padding: 60px 40px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-2xl);
+}
+.hs-cta-box h2 { font-size:36px; font-weight:800; color:#fff; margin-bottom:12px; letter-spacing:-0.02em; }
+.hs-cta-box p  { font-size:16px; color:#94A3B8; margin-bottom:28px; }
+
+/* ── FOOTER ── */
+.hs-footer { background:#fff; padding:56px 24px 28px; border-top:1px solid var(--gray-200); }
+.hs-footer-grid {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+.hs-footer-col-wide { flex:2; min-width:220px; }
+.hs-footer-col { flex:1; min-width:140px; }
+.hs-footer-logo { font-size:18px; font-weight:800; color:var(--dark); margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+.hs-footer-desc { font-size:14px; color:var(--gray-500); line-height:1.65; margin-bottom:20px; }
+.hs-footer-heading { font-size:12px; font-weight:700; color:var(--dark); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px; }
+.hs-footer-links { display:flex; flex-direction:column; gap:9px; }
+.hs-footer-links a { font-size:14px; color:var(--gray-500); transition:color var(--transition); }
+.hs-footer-links a:hover { color:var(--primary); }
+.hs-footer-bottom {
+  max-width: 1240px;
+  margin: 0 auto;
+  border-top: 1px solid var(--gray-200);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.hs-footer-bottom-left { display:flex; align-items:center; gap:14px; }
+.hs-footer-copy { font-size:12px; color:var(--gray-400); }
+.hs-footer-bottom-right { display:flex; gap:18px; }
+.hs-footer-bottom-right a { font-size:12px; color:var(--gray-500); transition:color var(--transition); }
+.hs-footer-bottom-right a:hover { color:var(--primary); }
+.hs-li-badge { font-size:12px; font-weight:700; color:var(--primary); border:1.5px solid var(--primary); border-radius:4px; padding:2px 6px; }
+
+/* ── SCROLL ANIMATIONS ── */
+.hs-fade {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.hs-fade.visible { opacity:1; transform:translateY(0); }
+.hs-fade-delay-1 { transition-delay:0.1s; }
+.hs-fade-delay-2 { transition-delay:0.2s; }
+.hs-fade-delay-3 { transition-delay:0.3s; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .hs-h1 { font-size:40px; }
+  .hs-grid-4 { grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width: 768px) {
+  .hs-nav-links { display:none; }
+  .hs-signin-nav { display:none; }
+  .hs-menu-btn { display:block; }
+  .hs-h1 { font-size:32px; }
+  .hs-hero { padding:72px 16px 56px; }
+  .hs-hero-inner { flex-direction:column; gap:36px; }
+  .hs-hero-btns { flex-direction:column; }
+  .hs-btn { justify-content:center; }
+  .hs-section-light, .hs-section-white, .hs-section-dark, .hs-section-blue { padding:60px 16px; }
+  .hs-grid-3 { grid-template-columns:1fr; }
+  .hs-grid-4 { grid-template-columns:1fr; }
+  .hs-grid-2 { grid-template-columns:1fr; }
+  .hs-section-hd h2 { font-size:28px; }
+  .hs-testimonial-wrap { padding:32px 24px; }
+  .hs-testimonial-quote { font-size:15px; }
+  .hs-process { flex-direction:column; gap:28px; }
+  .hs-process-step::before { display:none; }
+  .hs-awards-top { flex-direction:column; text-align:center; }
+  .hs-award-500 { font-size:72px; }
+  .hs-partners-box { padding:20px; gap:16px; }
+  .hs-footer-grid { flex-direction:column; gap:28px; }
+  .hs-footer-bottom { flex-direction:column; text-align:center; }
+  .hs-work-grid { grid-template-columns:1fr; }
+  .hs-modal { padding:28px 20px; }
+  .hs-input-row { flex-direction:column; gap:0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div id="hs-toast"></div>
+
+<!-- ═══════════════ BOOK A DEMO MODAL ═══════════════ -->
+<div id="modal-demo" class="hs-overlay">
+  <div class="hs-modal">
+    <button class="hs-modal-close" onclick="HS.closeModal('modal-demo')">✕</button>
+
+    <div id="demo-form-wrap">
+      <span class="hs-pill">🎯 Free Demo</span>
+      <h2 style="font-size:22px;font-weight:800;color:var(--dark);margin-bottom:6px;">Book Your Free Demo</h2>
+      <p style="font-size:14px;color:var(--gray-500);margin-bottom:4px;">See how HubSync transforms your CPA firm in 30 minutes.</p>
+
+      <div class="hs-input-row">
+        <div>
+          <label class="hs-label">First Name *</label>
+          <input class="hs-input" id="d-first" placeholder="John" type="text">
+        </div>
+        <div>
+          <label class="hs-label">Last Name *</label>
+          <input class="hs-input" id="d-last" placeholder="Smith" type="text">
+        </div>
+      </div>
+      <label class="hs-label">Work Email *</label>
+      <input class="hs-input" id="d-email" placeholder="john@yourfirm.com" type="email">
+      <div class="hs-err" id="d-email-err">Enter a valid email address</div>
+
+      <label class="hs-label">Firm Name *</label>
+      <input class="hs-input" id="d-firm" placeholder="Smith & Associates CPA" type="text">
+
+      <label class="hs-label">Firm Size</label>
+      <select class="hs-input" id="d-size">
+        <option value="">Select firm size</option>
+        <option>1–10 employees (Small)</option>
+        <option>11–50 employees (Mid-size)</option>
+        <option>51–200 employees (Large)</option>
+        <option>200+ employees (Enterprise)</option>
+      </select>
+
+      <label class="hs-label">I'm most interested in</label>
+      <select class="hs-input" id="d-product">
+        <option value="">Select a solution</option>
+        <option>Engagement Letter Wizard</option>
+        <option>e-Sign</option>
+        <option>Workflow Tracking</option>
+        <option>Client Portal</option>
+        <option>Gateway Dashboard</option>
+        <option>Full Platform Overview</option>
+      </select>
+
+      <button class="hs-btn hs-btn-primary hs-btn-full" id="demo-submit-btn">🚀 Schedule My Free Demo</button>
+      <p style="text-align:center;font-size:12px;color:var(--gray-400);margin-top:10px;">✅ Free &nbsp; ✅ 30 minutes &nbsp; ✅ No commitment</p>
+    </div>
+
+    <div id="demo-success" class="hs-success">
+      <div class="hs-success-icon">✅</div>
+      <h3 style="font-size:22px;font-weight:800;color:var(--dark);margin-bottom:8px;">Demo Booked!</h3>
+      <p id="demo-success-msg" style="color:var(--gray-500);font-size:14px;line-height:1.7;margin-bottom:20px;"></p>
+      <div style="background:#F0FDF4;border-radius:12px;padding:14px;margin-bottom:18px;text-align:left;">
+        <div style="font-size:13px;color:var(--gray-700);margin-bottom:6px;">📅 Check your email for a calendar invite</div>
+        <div style="font-size:13px;color:var(--gray-700);">📞 A HubSync specialist will contact you within 24 hours</div>
+      </div>
+      <button class="hs-btn hs-btn-primary hs-btn-full" id="demo-done-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ LOGIN MODAL ═══════════════ -->
+<div id="modal-login" class="hs-overlay">
+  <div class="hs-modal">
+    <button class="hs-modal-close" onclick="HS.closeModal('modal-login')">✕</button>
+
+    <div id="login-wrap">
+      <div style="text-align:center;margin-bottom:22px;">
+        <div style="font-size:28px;margin-bottom:6px;">⚡</div>
+        <h2 style="font-size:22px;font-weight:800;color:var(--dark);margin-bottom:4px;">Welcome to HubSync</h2>
+        <p style="font-size:13px;color:var(--gray-500);">Sign in to your account</p>
+      </div>
+
+      <div class="hs-tabs">
+        <button class="hs-tab active" id="tab-signin">Sign In</button>
+        <button class="hs-tab" id="tab-register">Create Account</button>
+      </div>
+
+      <!-- SIGN IN -->
+      <div id="signin-form">
+        <label class="hs-label">Email Address</label>
+        <input class="hs-input" id="li-email" placeholder="your@email.com" type="email">
+
+        <label class="hs-label">Password</label>
+        <div style="position:relative;">
+          <input class="hs-input" id="li-pass" placeholder="Your password" type="password" style="padding-right:46px;">
+          <button id="li-toggle" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--gray-400);">👁</button>
+        </div>
+        <div class="hs-err" id="li-err">Wrong email or password</div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;margin-bottom:4px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-500);font-weight:400;cursor:pointer;">
+            <input type="checkbox" id="li-remember"> Remember me
+          </label>
+          <a href="#" style="font-size:12px;color:var(--primary);font-weight:500;">Forgot password?</a>
+        </div>
+
+        <button class="hs-btn hs-btn-primary hs-btn-full" id="signin-btn">Sign In →</button>
+        <p style="text-align:center;font-size:12px;color:var(--gray-400);margin-top:12px;">
+          Demo: <strong style="color:var(--primary);">demo@hubsync.com</strong> / <strong style="color:var(--primary);">demo123</strong>
+        </p>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="register-form" style="display:none;">
+        <div class="hs-input-row">
+          <div>
+            <label class="hs-label">First Name *</label>
+            <input class="hs-input" id="reg-first" placeholder="John" type="text">
+          </div>
+          <div>
+            <label class="hs-label">Last Name *</label>
+            <input class="hs-input" id="reg-last" placeholder="Smith" type="text">
+          </div>
+        </div>
+        <label class="hs-label">Work Email *</label>
+        <input class="hs-input" id="reg-email" placeholder="john@yourfirm.com" type="email">
+        <div class="hs-err" id="reg-email-err">This email is already registered</div>
+
+        <label class="hs-label">Firm Name</label>
+        <input class="hs-input" id="reg-firm" placeholder="Smith & Associates CPA" type="text">
+
+        <label class="hs-label">Password * (min 6 characters)</label>
+        <div style="position:relative;">
+          <input class="hs-input" id="reg-pass" placeholder="Create a password" type="password" style="padding-right:46px;">
+          <button id="reg-toggle" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--gray-400);">👁</button>
+        </div>
+        <div class="hs-err" id="reg-pass-err">Password must be at least 6 characters</div>
+
+        <div style="margin-top:12px;">
+          <label style="display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--gray-500);font-weight:400;cursor:pointer;line-height:1.5;">
+            <input type="checkbox" id="reg-agree" style="margin-top:2px;flex-shrink:0;">
+            I agree to HubSync's <a href="#" style="color:var(--primary);">Terms of Service</a> and <a href="#" style="color:var(--primary);">Privacy Policy</a>
+          </label>
+          <div class="hs-err" id="reg-agree-err">Please agree to terms to continue</div>
+        </div>
+
+        <button class="hs-btn hs-btn-primary hs-btn-full" id="register-btn">Create Free Account →</button>
+      </div>
+    </div>
+
+    <div id="login-success" class="hs-success">
+      <div class="hs-success-icon">👋</div>
+      <h3 style="font-size:22px;font-weight:800;color:var(--dark);margin-bottom:8px;">Welcome Back!</h3>
+      <p id="login-success-msg" style="color:var(--gray-500);font-size:14px;line-height:1.7;margin-bottom:20px;"></p>
+      <button class="hs-btn hs-btn-primary hs-btn-full" id="login-done-btn">Go to Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<div class="hs-nav-wrap" id="nav-wrap">
+  <div class="hs-nav">
+    <div class="hs-logo">
+      <div class="hs-logo-bolt">⚡</div>
+      HubSync
+    </div>
+
+    <ul class="hs-nav-links">
+      <li><a href="#solutions" class="active">Solution ▾</a></li>
+      <li><a href="#case-study">Case Study</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#team">Team</a></li>
+      <li><a href="#news">News</a></li>
+      <li><a href="#learn">Learn</a></li>
+    </ul>
+
+    <div class="hs-nav-right">
+      <button class="hs-signin-nav" id="nav-signin-btn">Sign In</button>
+
+      <div class="hs-avatar-wrap" id="user-avatar">
+        <div class="hs-avatar-circle" id="avatar-letter">Z</div>
+        <span class="hs-avatar-name" id="avatar-name">User</span>
+        <span style="color:var(--gray-400);font-size:11px;">▾</span>
+        <div class="hs-avatar-dd" id="avatar-dropdown">
+          <button class="hs-dd-item">👤 My Profile</button>
+          <button class="hs-dd-item">📊 Dashboard</button>
+          <button class="hs-dd-item">⚙️ Settings</button>
+          <button class="hs-dd-item">📋 My Demos</button>
+          <button class="hs-dd-item hs-dd-logout" id="logout-btn">🚪 Sign Out</button>
+        </div>
+      </div>
+
+      <button class="hs-demo-nav" id="nav-demo-btn">Book a Demo</button>
+      <button class="hs-menu-btn" id="menu-btn">☰</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile nav -->
+<div class="hs-mobile-nav" id="mobile-nav">
+  <a href="#solutions">Solution</a>
+  <a href="#case-study">Case Study</a>
+  <a href="#about">About</a>
+  <a href="#team">Team</a>
+  <a href="#news">News</a>
+  <a href="#learn">Learn</a>
+  <div style="margin-top:14px;display:flex;gap:10px;">
+    <button class="hs-btn hs-btn-outline hs-btn-sm" id="mobile-signin-btn" style="flex:1;">Sign In</button>
+    <button class="hs-btn hs-btn-primary hs-btn-sm" id="mobile-demo-btn" style="flex:1;">Book a Demo</button>
+  </div>
+</div>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hs-hero" id="home">
+  <div class="hs-hero-inner">
+
+    <div class="hs-hero-left">
+      <span class="hs-pill">Case Study</span>
+      <h1 class="hs-h1">HubSync – <span>Tax &amp;</span><br>Accounting Platform</h1>
+      <p class="hs-hero-sub">One platform to automate engagement, tracking, e-filing, and client collaboration.</p>
+
+      <div class="hs-bullet">
+        <div class="hs-bullet-check">✓</div>
+        The only integration platform built by seasoned CPA professionals
+      </div>
+      <div class="hs-bullet">
+        <div class="hs-bullet-check">✓</div>
+        CEO with 30+ years exclusively building tax software
+      </div>
+      <div class="hs-bullet">
+        <div class="hs-bullet-check">✓</div>
+        Winner of 2022, 2023 &amp; 2024 CPA Practice Advisor Innovation Award
+      </div>
+      <div class="hs-bullet">
+        <div class="hs-bullet-check">✓</div>
+        Weeks to implement — almost no training needed
+      </div>
+
+      <div class="hs-hero-btns">
+        <button class="hs-btn hs-btn-primary hero-demo-btn" style="font-size:15px;padding:13px 32px;">🚀 Book a Demo</button>
+        <button class="hs-btn hs-btn-outline hero-explore-btn" style="font-size:15px;padding:12px 30px;">Explore Features ↓</button>
+      </div>
+
+      <div class="hs-social-proof">
+        <div class="hs-avatars">
+          <div class="hs-avatars-item" style="background:#1A5FFF;z-index:3;">J</div>
+          <div class="hs-avatars-item" style="background:#0040CC;z-index:2;">S</div>
+          <div class="hs-avatars-item" style="background:#10B981;z-index:1;">M</div>
+        </div>
+        <div>
+          <div class="hs-stars">★★★★★</div>
+          <div class="hs-proof-text">Trusted by <strong>500+ CPA firms</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hs-hero-right">
+      <div class="hs-dash">
+        <div class="hs-dash-label">⚡ HUBSYNC LIVE DASHBOARD</div>
+        <div class="hs-dash-stats">
+          <div class="hs-dash-stat" style="background:rgba(26,95,255,0.2);border-color:rgba(26,95,255,0.3);">
+            <div class="hs-dash-stat-val">1,248</div>
+            <div class="hs-dash-stat-lbl">Letters Sent</div>
+          </div>
+          <div class="hs-dash-stat" style="background:rgba(16,185,129,0.2);border-color:rgba(16,185,129,0.3);">
+            <div class="hs-dash-stat-val">98%</div>
+            <div class="hs-dash-stat-lbl">Signed Rate</div>
+          </div>
+          <div class="hs-dash-stat" style="background:rgba(245,158,11,0.2);border-color:rgba(245,158,11,0.3);">
+            <div class="hs-dash-stat-val">65%</div>
+            <div class="hs-dash-stat-lbl">Time Saved</div>
+          </div>
+        </div>
+        <div class="hs-dash-activity">
+          <div class="hs-dash-act-hd">RECENT ACTIVITY</div>
+          <div class="hs-dash-act-row">
+            <div class="hs-dash-dot g"></div>
+            <div class="hs-dash-act-txt">Letter signed — John Smith</div>
+            <div class="hs-dash-act-time">2m ago</div>
+          </div>
+          <div class="hs-dash-act-row">
+            <div class="hs-dash-dot a"></div>
+            <div class="hs-dash-act-txt">Tax return filed — ABC Corp</div>
+            <div class="hs-dash-act-time">15m ago</div>
+          </div>
+          <div class="hs-dash-act-row">
+            <div class="hs-dash-dot b"></div>
+            <div class="hs-dash-act-txt">New client — XYZ LLC onboarded</div>
+            <div class="hs-dash-act-time">1h ago</div>
+          </div>
+        </div>
+        <button class="hs-dash-cta dash-demo-btn">🎯 See This Dashboard Live →</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════ LOGOS ═══════════════ -->
+<div class="hs-logos">
+  <div class="hs-logo-track">
+    <span>ANDERS</span><span>ANDERSEN</span><span>APRIO°</span>
+    <span>bakertilly</span><span>BT BENNETT</span><span>e.blue</span>
+    <span>▲ CRI</span><span>CITRINCO</span><span>WITHUM</span>
+    <span>FRAZIER &amp; DEETER</span><span>KSM</span><span>GRASSI</span>
+    <!-- Repeat for infinite scroll -->
+    <span>ANDERS</span><span>ANDERSEN</span><span>APRIO°</span>
+    <span>bakertilly</span><span>BT BENNETT</span><span>e.blue</span>
+    <span>▲ CRI</span><span>CITRINCO</span><span>WITHUM</span>
+    <span>FRAZIER &amp; DEETER</span><span>KSM</span><span>GRASSI</span>
+  </div>
+</div>
+
+<!-- ═══════════════ SERVICES ═══════════════ -->
+<section class="hs-section-dark" id="solutions">
+  <div class="hs-inner">
+    <div class="hs-section-hd hs-fade">
+      <span class="hs-pill" style="border-color:rgba(255,255,255,0.3);color:#94A3B8;">Our Service</span>
+      <h2>Offering Versatile<br>Digital Services</h2>
+      <p>HubSync helps accounting firms work faster and smarter with easy-to-use tools that automate tasks and improve client service.</p>
+    </div>
+    <div class="hs-grid-3">
+      <div class="hs-service-card hs-fade" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);">
+        <div class="hs-service-icon" style="background:rgba(26,95,255,0.2);">📋</div>
+        <div class="hs-service-title" style="color:#fff;">Tax Workflow Automation</div>
+        <div class="hs-service-desc" style="color:#94A3B8;">HubSync helps accounting firms work faster and smarter with easy-to-use tools that automate tasks and improve client service.</div>
+        <button class="hs-learn-more" style="color:#60A5FA;">LEARN MORE →</button>
+      </div>
+      <div class="hs-service-card hs-fade hs-fade-delay-1" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);">
+        <div class="hs-service-icon" style="background:rgba(26,95,255,0.2);">🤝</div>
+        <div class="hs-service-title" style="color:#fff;">Client Collaboration Hub</div>
+        <div class="hs-service-desc" style="color:#94A3B8;">A centralized, secure portal for document sharing, e-signatures, communication, and task tracking—designed to enhance transparency.</div>
+        <button class="hs-learn-more" style="color:#60A5FA;">LEARN MORE →</button>
+      </div>
+      <div class="hs-service-card hs-fade hs-fade-delay-2" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);">
+        <div class="hs-service-icon" style="background:rgba(26,95,255,0.2);">📊</div>
+        <div class="hs-service-title" style="color:#fff;">Analytics &amp; Performance</div>
+        <div class="hs-service-desc" style="color:#94A3B8;">Get powerful insights into project status, team performance, and client behavior with customizable dashboards and automated reporting.</div>
+        <button class="hs-learn-more" style="color:#60A5FA;">LEARN MORE →</button>
+      </div>
+      <div class="hs-service-card hs-fade" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);">
+        <div class="hs-service-icon" style="background:rgba(26,95,255,0.2);">✉️</div>
+        <div class="hs-service-title" style="color:#fff;">Digital Engagement Letters</div>
+        <div class="hs-service-desc" style="color:#94A3B8;">Generate, send, and track engagement letters with just a few clicks — boosting efficiency and ensuring compliance across all client engagements.</div>
+        <button class="hs-learn-more" style="color:#60A5FA;">LEARN MORE →</button>
+      </div>
+      <div class="hs-service-card hs-fade hs-fade-delay-1" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);">
+        <div class="hs-service-icon" style="background:rgba(26,95,255,0.2);">🔗</div>
+        <div class="hs-service-title" style="color:#fff;">Seamless Integrations</div>
+        <div class="hs-service-desc" style="color:#94A3B8;">Connect HubSync effortlessly with your existing tools, including Outlook, document management systems, and other tax software.</div>
+        <button class="hs-learn-more" style="color:#60A5FA;">LEARN MORE →</button>
+      </div>
+      <div class="hs-service-card hs-fade hs-fade-delay-2" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);">
+        <div class="hs-service-icon" style="background:rgba(26,95,255,0.2);">🤖</div>
+        <div class="hs-service-title" style="color:#fff;">AI-Powered Tax Organizers</div>
+        <div class="hs-service-desc" style="color:#94A3B8;">Leverage intelligent tax organizers that adapt to each client, helping firms gather and process information faster and more accurately.</div>
+        <button class="hs-learn-more" style="color:#60A5FA;">LEARN MORE →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ MARQUEE STRIP ═══════════════ -->
+<div class="hs-marquee-strip">
+  <div class="hs-marquee-inner">
+    <span>ON MARKETING</span><span>•</span><span>TECHNOLOGY</span><span>•</span>
+    <span>ADVERTISING</span><span>•</span><span>INNOVATION</span><span>•</span>
+    <span>TAX WORKFLOW</span><span>•</span><span>CLIENT PORTAL</span><span>•</span>
+    <span>E-SIGNATURE</span><span>•</span><span>ANALYTICS</span><span>•</span>
+    <span>ON MARKETING</span><span>•</span><span>TECHNOLOGY</span><span>•</span>
+    <span>ADVERTISING</span><span>•</span><span>INNOVATION</span><span>•</span>
+  </div>
+</div>
+
+<!-- ═══════════════ WORK PROCESS ═══════════════ -->
+<section class="hs-section-white">
+  <div class="hs-inner" style="display:flex;gap:56px;align-items:center;flex-wrap:wrap;">
+    <div style="flex:1;min-width:280px;">
+      <div style="background:var(--gray-100);border-radius:var(--radius-xl);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:72px;overflow:hidden;">
+        👥
+      </div>
+    </div>
+    <div style="flex:1;min-width:280px;">
+      <span class="hs-pill">Work Process</span>
+      <h2 style="font-size:34px;font-weight:800;color:var(--dark);margin-bottom:14px;letter-spacing:-0.02em;">Proven Process for a<br>Growing Your Business</h2>
+      <p style="font-size:15px;color:var(--gray-500);margin-bottom:32px;line-height:1.7;">HubSync's mission is to revolutionize the accounting industry by delivering intelligent, integrated solutions that automate manual processes.</p>
+      <div class="hs-process">
+        <div class="hs-process-step">
+          <div class="hs-process-num">1</div>
+          <div class="hs-process-title">Discussion</div>
+          <div class="hs-process-desc">We meet customers to discuss needs and demands before proposing plan.</div>
+        </div>
+        <div class="hs-process-step">
+          <div class="hs-process-num">2</div>
+          <div class="hs-process-title">Ideas &amp; Concepts</div>
+          <div class="hs-process-desc">We meet customers to set place to discuss the details.</div>
+        </div>
+        <div class="hs-process-step">
+          <div class="hs-process-num">3</div>
+          <div class="hs-process-title">Testing &amp; Trying</div>
+          <div class="hs-process-desc">We meet customers to set place to discuss the details.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STATS ═══════════════ -->
+<section class="hs-section-light">
+  <div class="hs-inner">
+    <div class="hs-grid-4">
+      <div class="hs-stat-card hs-fade"><div class="hs-stat-num">25</div><div class="hs-stat-lbl">Years of Experience</div></div>
+      <div class="hs-stat-card hs-fade hs-fade-delay-1"><div class="hs-stat-num">1M</div><div class="hs-stat-lbl">Projects Completed</div></div>
+      <div class="hs-stat-card hs-fade hs-fade-delay-2"><div class="hs-stat-num">150</div><div class="hs-stat-lbl">Expert Employees</div></div>
+      <div class="hs-stat-card hs-fade hs-fade-delay-3"><div class="hs-stat-num">20</div><div class="hs-stat-lbl">Prestigious Award</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ WHY CHOOSE ═══════════════ -->
+<section class="hs-section-white" id="about">
+  <div class="hs-inner">
+    <div class="hs-section-hd hs-fade">
+      <span class="hs-pill">Why HubSync</span>
+      <h2>Why Choose HubSync</h2>
+      <p>Everything your CPA firm needs in one powerful platform</p>
+    </div>
+    <div class="hs-grid-4">
+      <div class="hs-feature-card hs-fade"><div class="hs-feature-icon">🏪</div><div class="hs-feature-title">One-stop-Shop where CPA's work</div></div>
+      <div class="hs-feature-card hs-fade hs-fade-delay-1"><div class="hs-feature-icon">⚡</div><div class="hs-feature-title">Speed to value</div></div>
+      <div class="hs-feature-card hs-fade hs-fade-delay-2"><div class="hs-feature-icon">🎯</div><div class="hs-feature-title">Partner with BIAS for Action</div></div>
+      <div class="hs-feature-card hs-fade hs-fade-delay-3"><div class="hs-feature-icon">👥</div><div class="hs-feature-title">Client Centric Strategy</div></div>
+      <div class="hs-feature-card hs-fade"><div class="hs-feature-icon">📅</div><div class="hs-feature-title">25+ yrs of experience</div></div>
+      <div class="hs-feature-card hs-fade hs-fade-delay-1"><div class="hs-feature-icon">🧩</div><div class="hs-feature-title">Complete platform — fully modular</div></div>
+      <div class="hs-feature-card hs-fade hs-fade-delay-2"><div class="hs-feature-icon">🏢</div><div class="hs-feature-title">Big 4 tech available to all</div></div>
+      <div class="hs-feature-card hs-fade hs-fade-delay-3"><div class="hs-feature-icon">🔄</div><div class="hs-feature-title">Evolving with responsive team</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ WORK / PROJECTS ═══════════════ -->
+<section class="hs-section-dark" id="case-study">
+  <div class="hs-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;margin-bottom:28px;">
+      <div>
+        <p style="font-size:11px;font-weight:600;color:var(--primary);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Our Service</p>
+        <h2 style="font-size:34px;font-weight:800;color:#fff;letter-spacing:-0.02em;">Checkout our<br><span style="color:#94A3B8;">exclusive projects</span></h2>
+      </div>
+      <div class="hs-work-tabs">
+        <button class="hs-work-tab active" data-filter="all">All Works</button>
+        <button class="hs-work-tab" data-filter="branding">Branding</button>
+        <button class="hs-work-tab" data-filter="design">Design</button>
+        <button class="hs-work-tab" data-filter="dev">Development</button>
+      </div>
+    </div>
+    <div class="hs-work-grid">
+      <div class="hs-work-item"><div class="hs-work-item-bg">🖥️</div><div class="hs-work-item-overlay"><div class="hs-work-item-title">Tax Workflow Dashboard</div></div></div>
+      <div class="hs-work-item"><div class="hs-work-item-bg">📊</div><div class="hs-work-item-overlay"><div class="hs-work-item-title">Client Analytics Portal</div></div></div>
+      <div class="hs-work-item"><div class="hs-work-item-bg">✉️</div><div class="hs-work-item-overlay"><div class="hs-work-item-title">Engagement Letter System</div></div></div>
+      <div class="hs-work-item"><div class="hs-work-item-bg">🔐</div><div class="hs-work-item-overlay"><div class="hs-work-item-title">e-Sign Integration</div></div></div>
+      <div class="hs-work-item"><div class="hs-work-item-bg">🤝</div><div class="hs-work-item-overlay"><div class="hs-work-item-title">Client Collaboration Hub</div></div></div>
+      <div class="hs-work-item"><div class="hs-work-item-bg">📱</div><div class="hs-work-item-overlay"><div class="hs-work-item-title">Mobile Client Portal</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TESTIMONIAL ═══════════════ -->
+<section class="hs-section-dark">
+  <div class="hs-inner">
+    <div class="hs-testimonial-wrap">
+      <p style="font-size:11px;font-weight:700;color:var(--primary);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px;">⚡ Client Testimonial</p>
+      <div class="hs-testimonial-quote" id="testimonial-text">
+        "HubSync has completely transformed the way we manage our tax workflows. What used to take weeks is now handled in days — with fewer errors and much better client communication. It's an essential tool for any modern accounting firm."
+      </div>
+      <div class="hs-testimonial-author">
+        — <strong id="testimonial-author">Sarah Mitchell</strong>, <span id="testimonial-role">Managing Partner, Mitchell &amp; Co. CPAs</span>
+      </div>
+      <div class="hs-testimonial-dots">
+        <div class="hs-testimonial-dot active" data-idx="0"></div>
+        <div class="hs-testimonial-dot" data-idx="1"></div>
+        <div class="hs-testimonial-dot" data-idx="2"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TEAM ═══════════════ -->
+<section class="hs-section-blue" id="team">
+  <div class="hs-inner">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:24px;margin-bottom:44px;">
+      <div>
+        <p style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.6);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">⚡ Our Team</p>
+        <h2 style="font-size:36px;font-weight:800;color:#fff;letter-spacing:-0.02em;">An incredible Team<br><span style="font-weight:300;">of great minds</span></h2>
+      </div>
+      <p style="font-size:15px;color:rgba(255,255,255,0.7);max-width:380px;line-height:1.7;">HubSync's mission is to revolutionize the accounting industry by delivering intelligent, integrated solutions that automate manual processes, enhance client collaboration.</p>
+    </div>
+    <div class="hs-grid-4">
+      <div class="hs-team-card hs-fade">
+        <div class="hs-team-photo">
+          👨‍💼
+          <div class="hs-team-photo-overlay">
+            <div class="hs-team-social-btn">f</div>
+            <div class="hs-team-social-btn">in</div>
+            <div class="hs-team-social-btn">x</div>
+          </div>
+        </div>
+        <div class="hs-team-name" style="color:#fff;">John McGowan</div>
+        <div class="hs-team-role" style="color:rgba(255,255,255,0.6);">CEO</div>
+      </div>
+      <div class="hs-team-card hs-fade hs-fade-delay-1">
+        <div class="hs-team-photo">👨‍💻
+          <div class="hs-team-photo-overlay">
+            <div class="hs-team-social-btn">f</div>
+            <div class="hs-team-social-btn">in</div>
+            <div class="hs-team-social-btn">x</div>
+          </div>
+        </div>
+        <div class="hs-team-name" style="color:#fff;">Paul Madarasz</div>
+        <div class="hs-team-role" style="color:rgba(255,255,255,0.6);">COO</div>
+      </div>
+      <div class="hs-team-card hs-fade hs-fade-delay-2">
+        <div class="hs-team-photo">👨‍🔬
+          <div class="hs-team-photo-overlay">
+            <div class="hs-team-social-btn">f</div>
+            <div class="hs-team-social-btn">in</div>
+            <div class="hs-team-social-btn">x</div>
+          </div>
+        </div>
+        <div class="hs-team-name" style="color:#fff;">Don Terry</div>
+        <div class="hs-team-role" style="color:rgba(255,255,255,0.6);">CRO</div>
+      </div>
+      <div class="hs-team-card hs-fade hs-fade-delay-3">
+        <div class="hs-team-photo">👩‍💼
+          <div class="hs-team-photo-overlay">
+            <div class="hs-team-social-btn">f</div>
+            <div class="hs-team-social-btn">in</div>
+            <div class="hs-team-social-btn">x</div>
+          </div>
+        </div>
+        <div class="hs-team-name" style="color:#fff;">Betsy Weissman</div>
+        <div class="hs-team-role" style="color:rgba(255,255,255,0.6);">CMO</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ AWARDS ═══════════════ -->
+<section class="hs-section-dark">
+  <div class="hs-inner">
+    <div class="hs-awards-top">
+      <div>
+        <p style="font-size:11px;font-weight:600;color:var(--primary);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">⚡ Awards</p>
+        <h2 style="font-size:36px;font-weight:800;color:#fff;line-height:1.2;letter-spacing:-0.02em;">Award-Winning Innovation:<br>Recognized by Deloitte.</h2>
+        <p style="font-size:15px;color:#94A3B8;margin-top:14px;line-height:1.7;">HubSync has been honored with a prestigious award from Deloitte — Technology Fast 500 North America.</p>
+      </div>
+      <div style="text-align:center;">
+        <div class="hs-award-500">500</div>
+        <div style="font-size:13px;color:#94A3B8;font-weight:600;margin-top:6px;">Technology Fast 500 2024<br>North America</div>
+      </div>
+    </div>
+    <div class="hs-grid-4">
+      <div class="hs-award-card">
+        <div style="font-size:40px;margin-bottom:10px;">🏆</div>
+        <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:6px;">2023</div>
+        <div class="hs-award-title">Winner Globee Awards<br>Gold Winner</div>
+        <div class="hs-award-tags">
+          <span class="hs-award-tag outline">Nominated</span>
+          <span class="hs-award-tag blue">Winner</span>
+        </div>
+      </div>
+      <div class="hs-award-card">
+        <div style="font-size:36px;margin-bottom:10px;">🏅</div>
+        <div class="hs-award-yr">2022</div>
+        <div class="hs-award-title">Technology Innovation Award</div>
+        <div class="hs-award-org">CPA Practice Advisor</div>
+      </div>
+      <div class="hs-award-card">
+        <div style="font-size:36px;margin-bottom:10px;">🏅</div>
+        <div class="hs-award-yr">2023</div>
+        <div class="hs-award-title">Technology Innovation Award</div>
+        <div class="hs-award-org">CPA Practice Advisor</div>
+      </div>
+      <div class="hs-award-card">
+        <div style="font-size:36px;margin-bottom:10px;">🏅</div>
+        <div class="hs-award-yr">2024</div>
+        <div class="hs-award-title">Technology Innovation Award</div>
+        <div class="hs-award-org">CPA Practice Advisor</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PARTNERS ═══════════════ -->
+<section class="hs-section-white">
+  <div class="hs-inner">
+    <div class="hs-section-hd hs-fade">
+      <h2>Partnerships</h2>
+      <p>Trusted integrations with leading industry platforms</p>
+    </div>
+    <div class="hs-partners-box">
+      <div class="hs-partner-name">Thomson Reuters</div>
+      <div class="hs-partner-name">IRIS</div>
+      <div class="hs-partner-name">BDO Alliance</div>
+      <div class="hs-partner-name">ITA</div>
+      <div class="hs-partner-name">BOOMER</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ NEWS ═══════════════ -->
+<section class="hs-section-light" id="news">
+  <div class="hs-inner">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;margin-bottom:28px;">
+      <div>
+        <p style="font-size:11px;font-weight:600;color:var(--primary);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">⚡ Latest News</p>
+        <h2 style="font-size:34px;font-weight:800;color:var(--dark);letter-spacing:-0.02em;">Updates<br>What's New With Us</h2>
+      </div>
+      <div class="hs-news-filter">
+        <button class="hs-news-btn active" data-cat="all">Press</button>
+        <button class="hs-news-btn" data-cat="blog">Blog</button>
+        <button class="hs-news-btn" data-cat="announcements">Announcements</button>
+      </div>
+    </div>
+    <div class="hs-grid-3" id="news-grid">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ LEARN / RESOURCES ═══════════════ -->
+<section class="hs-section-white" id="learn">
+  <div class="hs-inner">
+    <div class="hs-section-hd hs-fade">
+      <span class="hs-pill">Resources</span>
+      <h2>Learn About HubSync's Solutions</h2>
+      <p>Learn more about all of HubSync's revolutionary solutions with our in-depth resources provided here.</p>
+    </div>
+    <div class="hs-grid-3">
+      <div class="hs-news-card hs-fade">
+        <div class="hs-news-thumb" style="background:linear-gradient(135deg,#0D1B3E,#1A2A5E);">
+          📹
+          <div class="hs-news-thumb-badge">VIDEO</div>
+        </div>
+        <div class="hs-news-body">
+          <div class="hs-news-title">Engagement Letter Wizard — FAQ</div>
+          <div class="hs-news-excerpt">Learn how to create, route and deliver engagement letters automatically.</div>
+          <button class="hs-news-link">Watch Now →</button>
+        </div>
+      </div>
+      <div class="hs-news-card hs-fade hs-fade-delay-1">
+        <div class="hs-news-thumb" style="background:linear-gradient(135deg,#162248,#0D1B3E);">
+          📄
+          <div class="hs-news-thumb-badge">PDF</div>
+        </div>
+        <div class="hs-news-body">
+          <div class="hs-news-title">HubSync Overview Brochure</div>
+          <div class="hs-news-excerpt">Download a comprehensive PDF overview of all HubSync modules and capabilities.</div>
+          <button class="hs-news-link">Download PDF →</button>
+        </div>
+      </div>
+      <div class="hs-news-card hs-fade hs-fade-delay-2">
+        <div class="hs-news-thumb" style="background:linear-gradient(135deg,#1A2A5E,#162248);">
+          🎓
+          <div class="hs-news-thumb-badge">WEBINAR</div>
+        </div>
+        <div class="hs-news-body">
+          <div class="hs-news-title">HubSync 2025 Sneak Peak Webinar</div>
+          <div class="hs-news-excerpt">See what's coming in 2025 — new modules, integrations and major platform updates.</div>
+          <button class="hs-news-link">Watch Webinar →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ CTA STRIP ═══════════════ -->
+<section class="hs-section-dark">
+  <div class="hs-inner">
+    <div class="hs-cta-box">
+      <h2>Interested in Learning More?</h2>
+      <p>Click below to get in touch with us.</p>
+      <button class="hs-btn hs-btn-white cta-demo-btn" style="font-size:16px;padding:14px 40px;">Book a Demo</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="hs-footer">
+  <div class="hs-footer-grid">
+    <div class="hs-footer-col-wide">
+      <div class="hs-footer-logo">
+        <div class="hs-logo-bolt">⚡</div>
+        HubSync
+      </div>
+      <div class="hs-footer-desc">Ready to Streamline Your Workflow? Click below to get in touch with us. HubSync — The platform built for CPA firms that want to work smarter.</div>
+      <button class="hs-btn hs-btn-primary footer-demo-btn" style="font-size:14px;padding:11px 24px;">Book a Demo</button>
+    </div>
+    <div class="hs-footer-col">
+      <div class="hs-footer-heading">Hubsync Link</div>
+      <div class="hs-footer-links">
+        <a href="#about">About</a>
+        <a href="#solutions">Solutions</a>
+        <a href="#team">Team</a>
+        <a href="#">Brand</a>
+        <a href="#news">News</a>
+      </div>
+    </div>
+    <div class="hs-footer-col">
+      <div class="hs-footer-heading">Our Address</div>
+      <div style="font-size:14px;color:var(--gray-500);line-height:1.7;margin-bottom:16px;">213 Marina Street,<br>Los Angeles USA, 665432</div>
+      <div class="hs-footer-heading">Send Email</div>
+      <a href="mailto:office@hubsync.com" style="font-size:14px;color:var(--primary);">office@hubsync.com</a>
+    </div>
+  </div>
+  <div class="hs-footer-bottom">
+    <div class="hs-footer-bottom-left">
+      <div class="hs-footer-logo" style="font-size:15px;margin-bottom:0;">
+        <div class="hs-logo-bolt" style="width:22px;height:22px;font-size:12px;border-radius:6px;">⚡</div>
+        HubSync
+      </div>
+      <span class="hs-footer-copy">©Copyright 2025 | HubSync Co. | 1-703-940-8728</span>
+    </div>
+    <div class="hs-footer-bottom-right">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Use</a>
+      <span class="hs-li-badge">in</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════
+   HUBSYNC APP — localStorage "Backend"
+   ════════════════════════════════════════════ */
+const HS = (() => {
+
+  /* ── Storage helpers ── */
+  const store = {
+    get: (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch(e) { return null; } },
+    set: (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e) { return false; } },
+    del: (k) => localStorage.removeItem(k)
+  };
+
+  const DB = {
+    users:    () => store.get('hs_users') || [],
+    saveUsers: (u) => store.set('hs_users', u),
+    me:       () => store.get('hs_me'),
+    setMe:    (u) => store.set('hs_me', u),
+    clearMe:  () => store.del('hs_me'),
+    demos:    () => store.get('hs_demos') || [],
+    addDemo:  (d) => {
+      const all = DB.demos();
+      all.push({ ...d, id: Date.now(), createdAt: new Date().toISOString() });
+      store.set('hs_demos', all);
+    }
+  };
+
+  /* ── Toast ── */
+  let toastTimer;
+  const toast = (msg, type='ok') => {
+    const el = document.getElementById('hs-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = `${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = '', 3600);
+  };
+
+  /* ── Modal ── */
+  const openModal = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  const closeModal = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  /* Close on overlay click */
+  document.querySelectorAll('.hs-overlay').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target === el) {
+        el.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    document.querySelectorAll('.hs-overlay.open').forEach(el => {
+      el.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+
+  /* ── Navigation ── */
+  const initNav = () => {
+    const navWrap = document.getElementById('nav-wrap');
+
+    // Scroll sticky behavior
+    window.addEventListener('scroll', () => {
+      navWrap.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // Mobile menu
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileNav = document.getElementById('mobile-nav');
+    menuBtn?.addEventListener('click', () => mobileNav.classList.toggle('open'));
+
+    // Nav active link
+    const navLinks = document.querySelectorAll('.hs-nav-links a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      document.querySelectorAll('section[id]').forEach(sec => {
+        if (window.scrollY >= sec.offsetTop - 100) current = sec.id;
+      });
+      navLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === `#${current}`);
+      });
+    });
+
+    // Book demo buttons
+    document.querySelectorAll(
+      '#nav-demo-btn, .hero-demo-btn, .dash-demo-btn, .cta-demo-btn, .footer-demo-btn'
+    ).forEach(btn => btn.addEventListener('click', openDemoModal));
+
+    // Sign in button
+    document.getElementById('nav-signin-btn')?.addEventListener('click', openLoginModal);
+    document.getElementById('mobile-signin-btn')?.addEventListener('click', openLoginModal);
+    document.getElementById('mobile-demo-btn')?.addEventListener('click', openDemoModal);
+
+    // Avatar dropdown toggle
+    const avatarWrap = document.getElementById('user-avatar');
+    const avatarDd = document.getElementById('avatar-dropdown');
+    avatarWrap?.addEventListener('click', () => avatarDd.classList.toggle('open'));
+    document.addEventListener('click', e => {
+      if (!avatarWrap?.contains(e.target)) avatarDd?.classList.remove('open');
+    });
+
+    // Logout
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+      DB.clearMe();
+      updateNavUI(null);
+      toast('👋 Signed out successfully.', 'ok');
+    });
+
+    // Explore features scroll
+    document.querySelectorAll('.hero-explore-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  };
+
+  /* ── Update nav for logged-in user ── */
+  const updateNavUI = (user) => {
+    const signinBtn = document.getElementById('nav-signin-btn');
+    const avatarWrap = document.getElementById('user-avatar');
+    const avatarLetter = document.getElementById('avatar-letter');
+    const avatarName = document.getElementById('avatar-name');
+
+    if (user) {
+      signinBtn.style.display = 'none';
+      avatarWrap.classList.add('visible');
+      avatarLetter.textContent = user.initial || 'U';
+      avatarName.textContent = user.name.split(' ')[0];
+    } else {
+      signinBtn.style.display = '';
+      avatarWrap.classList.remove('visible');
+    }
+  };
+
+  /* ── DEMO MODAL ── */
+  const openDemoModal = () => {
+    document.getElementById('demo-form-wrap').style.display = 'block';
+    document.getElementById('demo-success').style.display = 'none';
+    openModal('modal-demo');
+  };
+
+  const initDemoForm = () => {
+    document.getElementById('demo-submit-btn')?.addEventListener('click', () => {
+      const first = document.getElementById('d-first').value.trim();
+      const last  = document.getElementById('d-last').value.trim();
+      const email = document.getElementById('d-email').value.trim();
+      const firm  = document.getElementById('d-firm').value.trim();
+      const errEl = document.getElementById('d-email-err');
+
+      errEl.classList.remove('show');
+      document.getElementById('d-email').classList.remove('error');
+
+      if (!first || !email || !firm) { toast('⚠️ Please fill all required fields', 'warn'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.classList.add('show');
+        document.getElementById('d-email').classList.add('error');
+        return;
+      }
+
+      // Save to localStorage "backend"
+      DB.addDemo({ first, last, email, firm,
+        size: document.getElementById('d-size').value,
+        product: document.getElementById('d-product').value
+      });
+
+      document.getElementById('demo-form-wrap').style.display = 'none';
+      document.getElementById('demo-success').style.display = 'block';
+      document.getElementById('demo-success-msg').innerHTML =
+        `Thanks <strong>${first} ${last}</strong>! We'll email <strong>${email}</strong> to schedule your demo for <strong>${firm}</strong>.`;
+      toast('🎉 Demo booked! Check your email.', 'ok');
+    });
+
+    document.getElementById('demo-done-btn')?.addEventListener('click', () => closeModal('modal-demo'));
+  };
+
+  /* ── LOGIN MODAL ── */
+  const openLoginModal = () => {
+    document.getElementById('login-wrap').style.display = 'block';
+    document.getElementById('login-success').style.display = 'none';
+    switchAuthTab('signin');
+    openModal('modal-login');
+  };
+
+  const switchAuthTab = (tab) => {
+    const signinEl = document.getElementById('signin-form');
+    const registerEl = document.getElementById('register-form');
+    const tabSignin = document.getElementById('tab-signin');
+    const tabReg = document.getElementById('tab-register');
+    if (!signinEl) return;
+    if (tab === 'signin') {
+      signinEl.style.display = 'block';
+      registerEl.style.display = 'none';
+      tabSignin.classList.add('active');
+      tabReg.classList.remove('active');
+    } else {
+      signinEl.style.display = 'none';
+      registerEl.style.display = 'block';
+      tabSignin.classList.remove('active');
+      tabReg.classList.add('active');
+    }
+  };
+
+  const doLogin = (user) => {
+    DB.setMe(user);
+    updateNavUI(user);
+    document.getElementById('login-wrap').style.display = 'none';
+    document.getElementById('login-success').style.display = 'block';
+    document.getElementById('login-success-msg').innerHTML =
+      `Welcome, <strong>${user.name}</strong>! You are now signed in to HubSync${user.firm ? ' for ' + user.firm : ''}.`;
+    toast(`👋 Welcome, ${user.name.split(' ')[0]}!`, 'ok');
+  };
+
+  const initLoginForm = () => {
+    // Tab switching
+    document.getElementById('tab-signin')?.addEventListener('click', () => switchAuthTab('signin'));
+    document.getElementById('tab-register')?.addEventListener('click', () => switchAuthTab('register'));
+
+    // Password toggles
+    const makeToggle = (inputId, btnId) => {
+      const btn = document.getElementById(btnId);
+      const inp = document.getElementById(inputId);
+      if (!btn || !inp) return;
+      btn.addEventListener('click', () => {
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+      });
+    };
+    makeToggle('li-pass', 'li-toggle');
+    makeToggle('reg-pass', 'reg-toggle');
+
+    // Sign in
+    document.getElementById('signin-btn')?.addEventListener('click', () => {
+      const email = document.getElementById('li-email').value.trim();
+      const pass  = document.getElementById('li-pass').value;
+      const errEl = document.getElementById('li-err');
+      errEl.classList.remove('show');
+
+      if (!email || !pass) { toast('⚠️ Enter email and password', 'warn'); return; }
+
+      // Demo account
+      if (email === 'demo@hubsync.com' && pass === 'demo123') {
+        return doLogin({ name: 'Demo User', email, initial: 'D', firm: 'HubSync' });
+      }
+
+      // Check saved users
+      const user = DB.users().find(u => u.email === email && u.password === pass);
+      if (user) {
+        doLogin(user);
+      } else {
+        errEl.classList.add('show');
+        [document.getElementById('li-email'), document.getElementById('li-pass')].forEach(el => {
+          el.classList.add('error');
+          setTimeout(() => el.classList.remove('error'), 2200);
+        });
+        toast('❌ Wrong email or password', 'bad');
+      }
+    });
+
+    // Register
+    document.getElementById('register-btn')?.addEventListener('click', () => {
+      const first = document.getElementById('reg-first').value.trim();
+      const last  = document.getElementById('reg-last').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const pass  = document.getElementById('reg-pass').value;
+      const firm  = document.getElementById('reg-firm').value.trim();
+      const agree = document.getElementById('reg-agree').checked;
+
+      // Clear errors
+      ['reg-email-err','reg-pass-err','reg-agree-err'].forEach(id => document.getElementById(id)?.classList.remove('show'));
+      ['reg-email','reg-pass'].forEach(id => document.getElementById(id)?.classList.remove('error'));
+
+      if (!first || !last || !email || !pass) { toast('⚠️ Fill all required fields', 'warn'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('reg-email-err').textContent = 'Enter a valid email address';
+        document.getElementById('reg-email-err').classList.add('show');
+        document.getElementById('reg-email').classList.add('error');
+        return;
+      }
+      if (pass.length < 6) {
+        document.getElementById('reg-pass-err').classList.add('show');
+        document.getElementById('reg-pass').classList.add('error');
+        return;
+      }
+      if (!agree) {
+        document.getElementById('reg-agree-err').classList.add('show');
+        toast('⚠️ Please agree to terms', 'warn');
+        return;
+      }
+
+      const users = DB.users();
+      if (users.find(u => u.email === email)) {
+        document.getElementById('reg-email-err').textContent = 'This email is already registered';
+        document.getElementById('reg-email-err').classList.add('show');
+        document.getElementById('reg-email').classList.add('error');
+        toast('⚠️ Email already registered', 'warn');
+        return;
+      }
+
+      const newUser = { name: first + ' ' + last, email, password: pass, firm, initial: first[0].toUpperCase(), createdAt: new Date().toISOString() };
+      users.push(newUser);
+      DB.saveUsers(users);
+      doLogin(newUser);
+    });
+
+    document.getElementById('login-done-btn')?.addEventListener('click', () => closeModal('modal-login'));
+  };
+
+  /* ── TESTIMONIALS ── */
+  const testimonials = [
+    { text: '"HubSync has completely transformed the way we manage our tax workflows. What used to take weeks is now handled in days — with fewer errors and much better client communication. It\'s an essential tool for any modern accounting firm."', author: 'Sarah Mitchell', role: 'Managing Partner, Mitchell & Co. CPAs' },
+    { text: '"The engagement letter wizard alone saves our firm 10+ hours a week. The integration with our existing tax software was seamless and the client portal has dramatically improved our communication."', author: 'David Chen', role: 'Senior Partner, Chen & Associates' },
+    { text: '"We evaluated 6 platforms before choosing HubSync. Nothing else comes close to the breadth of features and the quality of support. The ROI was visible within the first month."', author: 'Jennifer Walsh', role: 'Managing Director, Walsh Tax Group' }
+  ];
+  let currentTestimonial = 0;
+
+  const initTestimonials = () => {
+    const dots = document.querySelectorAll('.hs-testimonial-dot');
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        currentTestimonial = parseInt(dot.dataset.idx);
+        updateTestimonial();
+      });
+    });
+
+    // Auto-rotate
+    setInterval(() => {
+      currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+      updateTestimonial();
+    }, 5000);
+  };
+
+  const updateTestimonial = () => {
+    const t = testimonials[currentTestimonial];
+    const textEl = document.getElementById('testimonial-text');
+    const authorEl = document.getElementById('testimonial-author');
+    const roleEl = document.getElementById('testimonial-role');
+    if (textEl) textEl.textContent = t.text.replace(/^"|"$/g,'');
+    if (authorEl) authorEl.textContent = t.author;
+    if (roleEl) roleEl.textContent = t.role;
+    document.querySelectorAll('.hs-testimonial-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === currentTestimonial);
+    });
+  };
+
+  /* ── NEWS ── */
+  const newsData = [
+    { title: 'Powering Efficiency for CPA Firms', excerpt: 'HubSync equips CPA firms with a transformative workflow tracking solution that redefines how client engagements are managed.', date: 'January 27, 2025', cat: 'all', icon: '📰', badge: 'BLOG' },
+    { title: 'HubSync Achieves Hypergrowth, Ranked #212 on Deloitte\'s Technology Fast 500', excerpt: 'HubSync is proud to announce recognition as one of North America\'s fastest-growing technology companies.', date: 'November 21, 2024', cat: 'announcements', icon: '🏆', badge: 'NEWS' },
+    { title: 'Streamlining Excellence: How Top US CPA Firms Use HubSync', excerpt: 'In the fast-paced world of accounting and tax preparation, efficiency is a necessity. The top US CPA firms recognize this.', date: 'November 13, 2024', cat: 'blog', icon: '📊', badge: 'BLOG' },
+    { title: 'HubSync Revolutionizes Tax and Accounting with 2024 Product Enhancements', excerpt: 'Major new features including AI-powered tax organizers, enhanced client portal, and advanced analytics capabilities.', date: 'January 27, 2025', cat: 'announcements', icon: '🚀', badge: 'NEWS' },
+    { title: 'Streamlining Busy Season: Best Practices for Tax Extensions', excerpt: 'The busy season of accounting and tax preparation can be intense. The sheer volume of work can lead to errors and delays.', date: 'September 11, 2024', cat: 'blog', icon: '📅', badge: 'BLOG' },
+    { title: 'Transform Your Firm\'s Client Experience with Gateway', excerpt: 'In today\'s digital age, tax and accounting clients expect a premier online experience that matches the high-touch service.', date: 'September 10, 2024', cat: 'all', icon: '🌐', badge: 'NEWS' },
+  ];
+
+  const renderNews = (filter = 'all') => {
+    const grid = document.getElementById('news-grid');
+    if (!grid) return;
+    const filtered = filter === 'all' ? newsData : newsData.filter(n => n.cat === filter || n.cat === 'all');
+    grid.innerHTML = filtered.slice(0, 3).map(n => `
+      <div class="hs-news-card">
+        <div class="hs-news-thumb">
+          <span style="font-size:42px;">${n.icon}</span>
+          <div class="hs-news-thumb-badge">${n.badge}</div>
+        </div>
+        <div class="hs-news-body">
+          <div class="hs-news-date">${n.date}</div>
+          <div class="hs-news-title">${n.title}</div>
+          <div class="hs-news-excerpt">${n.excerpt}</div>
+          <button class="hs-news-link">Learn More →</button>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  const initNews = () => {
+    renderNews('all');
+    document.querySelectorAll('.hs-news-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.hs-news-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderNews(btn.dataset.cat);
+      });
+    });
+  };
+
+  /* ── WORK TABS ── */
+  const initWorkTabs = () => {
+    document.querySelectorAll('.hs-work-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.hs-work-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        // In a real app, filter work items here
+      });
+    });
+  };
+
+  /* ── SCROLL ANIMATIONS ── */
+  const initScrollAnimations = () => {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.hs-fade').forEach(el => observer.observe(el));
+  };
+
+  /* ── NAV SCROLL HIGHLIGHT ── */
+  const initNavHighlight = () => {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.hs-nav-links a');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === `#${entry.target.id}`);
+          });
+        }
+      });
+    }, { threshold: 0.4 });
+
+    sections.forEach(s => observer.observe(s));
+  };
+
+  /* ── INIT ── */
+  const init = () => {
+    initNav();
+    initDemoForm();
+    initLoginForm();
+    initTestimonials();
+    initNews();
+    initWorkTabs();
+    initScrollAnimations();
+    initNavHighlight();
+
+    // Restore login state
+    const me = DB.me();
+    if (me) updateNavUI(me);
+
+    console.log('%c⚡ HubSync App loaded — localStorage backend ready', 'color:#1A5FFF;font-weight:bold;font-size:13px;');
+    console.log('%cDemo login: demo@hubsync.com / demo123', 'color:#10B981;font-size:12px;');
+  };
+
+  return { init, openModal, closeModal, toast, DB };
+})();
+
+document.addEventListener('DOMContentLoaded', HS.init);
+</script>
+</body>
+</html>
