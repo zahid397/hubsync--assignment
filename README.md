@@ -185,6 +185,13 @@ open hubsync.html
 |--|--|
 | 📧 Email | zh05698@gmail.com |
 | 🐙 GitHub | [github.com/zahid397](https://github.com/zahid397) |
+## 🌐 Live Demo
+
+🔗 https://zahid397.github.io/hubsync--assignment/
+
+A responsive HubSync assignment project deployed using GitHub Pages.
+
+
 | 🌐 Portfolio | [zahidportfilio.vercel.app](https://zahidportfilio.vercel.app) |
 | 📍 Location | Dhaka, Bangladesh |
 
